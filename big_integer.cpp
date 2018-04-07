@@ -115,28 +115,23 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
 void big_integer::sub_with_shift(big_integer& lhs, const big_integer& rhs, long sh) {
     unsigned long long carry = 1;
     size_t m = rhs.number.size() + sh;
-    size_t n = std::max(lhs.number.size(), rhs.number.size() + sh) + 1;
-    std::vector<ui> res(n);
-
-    for (size_t i = 0; i < (size_t)sh; i++) {
-        unsigned long long tmp = carry + lhs.number[i] + UI_MAX;
-        res[i] = uicast(tmp);
-        carry = tmp >> 32;
-    }
+    size_t n = lhs.number.size() + 1;
+    lhs.number.resize(n);
 
     for (size_t i = sh; i < m; i++) {
-        unsigned long long tmp = carry + lhs.number[i] + ~rhs.number[i - sh];
-        res[i] = uicast(tmp);
-        carry = tmp >> 32;
+        carry += ullcast(lhs.number[i]) + ~rhs.number[i - sh];
+        lhs.number[i] = uicast(carry);
+        carry >>= 32;
     }
 
-    for (size_t i = m; i < n; i++) {
-        unsigned long long tmp = carry + lhs.at(i) + UI_MAX;
-        res[i] = uicast(tmp);
-        carry = tmp >> 32;
+    if (carry == 0) {
+        for (size_t i = m; i < n; i++) {
+            carry += lhs.at(i) + ullcast(UI_MAX);
+            lhs.number[i] = uicast(carry);
+            carry >>= 32;
+        }
     }
 
-    lhs.number.swap(res);
     lhs.isNegative = static_cast<bool>(lhs.number.back() >> 31);
     lhs.removeLeadingZeros();
 }
@@ -540,27 +535,24 @@ big_integer &big_integer::operator*=(int rhs) {
 }
 
 big_integer &big_integer::operator*=(unsigned rhs) {
-    big_integer a_lhs = abs(*this);
+    if (rhs == 0) {
+        number.clear();
+        isNegative = false;
+        return *this;
+    }
 
-    std::vector<ui> result(a_lhs.number.size() + 2, 0);
+    std::vector<ui> result(number.size() + 1);
 
     unsigned long long carry = 0;
-    size_t n = a_lhs.number.size();
-    for (size_t j = 0; j < n || carry; j++) {
-        unsigned long long tmp = carry + result[j] + ullcast(a_lhs.at(j)) * rhs;
-        result[j] = uicast(tmp);
-        carry = tmp >> 32;
+    size_t n = result.size();
+    for (size_t j = 0; j < n; j++) {
+        carry += ullcast(at(j)) * rhs;
+        result[j] = uicast(carry);
+        carry >>= 32;
     }
 
-    a_lhs.number.swap(result);
-    a_lhs.isNegative = isNegative;
-    if (a_lhs.isNegative) {
-        a_lhs.isNegative = false;
-        a_lhs = -a_lhs;
-    }
-    a_lhs.removeLeadingZeros();
-
-    swap(*this, a_lhs);
+    number.swap(result);
+    removeLeadingZeros();
     return *this;
 }
 
