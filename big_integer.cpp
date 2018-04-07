@@ -94,7 +94,7 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
     for (size_t i = 0; i < m; i++) {
         unsigned long long carry = 0;
         for (size_t j = 0; j < n || carry; j++) {
-            unsigned long long tmp = carry + result[i + j] + 1ull * a_lhs.at(j) * a_rhs.number[i];
+            unsigned long long tmp = carry + result[i + j] + ullcast(a_lhs.at(j)) * a_rhs.number[i];
             result[i + j] = uicast(tmp);
             carry = tmp >> 32;
         }
@@ -175,7 +175,7 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
     }
 
     for (long i = m - 1; i >= 0; i--) {
-        unsigned long long q = (((1ull * a_lhs.at(n + i)) << 32) + a_lhs.at(n + i - 1)) / a_rhs.number.back();
+        unsigned long long q = ((ullcast(a_lhs.at(n + i)) << 32) + a_lhs.at(n + i - 1)) / a_rhs.number.back();
         q = std::min(q, ullcast(UI_MAX));
 
         sub_with_shift(a_lhs, uicast(q) * a_rhs, i);
@@ -543,7 +543,7 @@ big_integer &big_integer::operator*=(unsigned rhs) {
     unsigned long long carry = 0;
     size_t n = a_lhs.number.size();
     for (size_t j = 0; j < n || carry; j++) {
-        unsigned long long tmp = carry + result[j] + 1ull * a_lhs.at(j) * rhs;
+        unsigned long long tmp = carry + result[j] + ullcast(a_lhs.at(j)) * rhs;
         result[j] = uicast(tmp);
         carry = tmp >> 32;
     }
