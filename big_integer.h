@@ -59,8 +59,8 @@ struct big_integer
     big_integer radix_shl(const big_integer&, long);
     big_integer radix_shr(const big_integer&, long);
 private:
-    std::vector<unsigned int> number;
     bool isNegative;
+    std::vector<unsigned int> number;
 
     void removeLeadingZeros() noexcept;
     void sub_with_shift(big_integer&, const big_integer&, long sh);

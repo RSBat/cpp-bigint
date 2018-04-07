@@ -20,7 +20,7 @@ unsigned long long ullcast(unsigned int x) {
     return static_cast<unsigned long long>(x);
 }
 
-big_integer::big_integer() : number(0), isNegative(false) {
+big_integer::big_integer() : isNegative(false), number(0) {
 }
 
 big_integer::big_integer(int a) : isNegative(a < 0), number(1) {
@@ -118,7 +118,7 @@ void big_integer::sub_with_shift(big_integer& lhs, const big_integer& rhs, long 
     size_t n = std::max(lhs.number.size(), rhs.number.size() + sh) + 1;
     std::vector<ui> res(n);
 
-    for (size_t i = 0; i < sh; i++) {
+    for (size_t i = 0; i < (size_t)sh; i++) {
         unsigned long long tmp = carry + lhs.number[i] + UI_MAX;
         res[i] = uicast(tmp);
         carry = tmp >> 32;
@@ -447,7 +447,7 @@ std::string to_string(big_integer const &a) {
 }
 
 void big_integer::removeLeadingZeros() noexcept {
-    while (!number.empty() && (!isNegative && number.back() == 0 || isNegative && number.back() == UI_MAX)) {
+    while (!number.empty() && ((!isNegative && number.back() == 0) || (isNegative && number.back() == UI_MAX))) {
         number.pop_back();
     }
 }
