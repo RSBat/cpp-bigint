@@ -14,7 +14,7 @@ struct big_integer
     big_integer();
     big_integer(big_integer const& other) = default;
     big_integer(int a);
-    big_integer(unsigned int a);
+    big_integer(uint32_t a);
     explicit big_integer(std::string const& str);
     ~big_integer();
 
@@ -27,7 +27,7 @@ struct big_integer
     big_integer& operator%=(big_integer const& rhs);
 
     big_integer& operator*=(int rhs);
-    big_integer& operator*=(unsigned rhs);
+    big_integer& operator*=(uint32_t rhs);
 
     big_integer& operator&=(big_integer const& rhs);
     big_integer& operator|=(big_integer const& rhs);
@@ -60,12 +60,14 @@ struct big_integer
     big_integer radix_shr(const big_integer&, long);
 private:
     bool isNegative;
-    std::vector<unsigned int> number;
+    std::vector<uint32_t> number;
+
+    static const int BITS = 32;
 
     void removeLeadingZeros() noexcept;
     void sub_with_shift(big_integer&, const big_integer&, long sh);
     void add_with_shift(big_integer&, const big_integer&, long sh);
-    unsigned int at(size_t) const noexcept;
+    uint32_t at(size_t) const noexcept;
 };
 
 big_integer operator+(big_integer a, big_integer const& b);
@@ -77,8 +79,8 @@ big_integer operator%(big_integer a, big_integer const& b);
 big_integer operator*(big_integer a, int b);
 big_integer operator*(int a, big_integer b);
 
-big_integer operator*(big_integer a, unsigned b);
-big_integer operator*(unsigned a, big_integer b);
+big_integer operator*(big_integer a, uint32_t b);
+big_integer operator*(uint32_t a, big_integer b);
 
 big_integer operator&(big_integer a, big_integer const& b);
 big_integer operator|(big_integer a, big_integer const& b);
