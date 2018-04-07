@@ -62,8 +62,9 @@ private:
     std::vector<unsigned int> number;
     bool isNegative;
 
-    void removeLeadingZeros();
-    unsigned int at(size_t) const;
+    void removeLeadingZeros() noexcept;
+    void sub_with_shift(big_integer&, const big_integer&, long sh);
+    unsigned int at(size_t) const noexcept;
 };
 
 big_integer operator+(big_integer a, big_integer const& b);

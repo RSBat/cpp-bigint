@@ -48,43 +48,38 @@ big_integer::big_integer(std::string const &str) {
 big_integer::~big_integer() = default;
 
 big_integer &big_integer::operator+=(big_integer const &rhs) {
-    big_integer cpy(*this);
-
     unsigned long long carry = 0;
-    size_t n = std::max(cpy.number.size(), rhs.number.size()) + 1;
+    size_t n = std::max(number.size(), rhs.number.size()) + 1;
     std::vector<ui> res(n);
 
     for (size_t i = 0; i < n; i++) {
-        unsigned long long tmp = carry + cpy.at(i) + rhs.at(i);
+        unsigned long long tmp = carry + at(i) + rhs.at(i);
         res[i] = uicast(tmp);
         carry = tmp >> 32;
     }
 
-    cpy.number.swap(res);
-    cpy.isNegative = static_cast<bool>(cpy.number.back() >> 31);
-    cpy.removeLeadingZeros();
+    number.swap(res);
+    isNegative = static_cast<bool>(number.back() >> 31);
+    removeLeadingZeros();
 
-    swap(*this, cpy);
     return *this;
 }
 
 big_integer &big_integer::operator-=(big_integer const &rhs) {
-    big_integer cpy(*this);
-
     unsigned long long carry = 1;
-    size_t n = std::max(cpy.number.size(), rhs.number.size()) + 1;
+    size_t n = std::max(number.size(), rhs.number.size()) + 1;
     std::vector<ui> res(n);
+
     for (size_t i = 0; i < n; i++) {
-        unsigned long long tmp = carry + cpy.at(i) + ~rhs.at(i);
+        unsigned long long tmp = carry + at(i) + ~rhs.at(i);
         res[i] = uicast(tmp);
         carry = tmp >> 32;
     }
 
-    cpy.number.swap(res);
-    cpy.isNegative = static_cast<bool>(cpy.number.back() >> 31);
-    cpy.removeLeadingZeros();
+    number.swap(res);
+    isNegative = static_cast<bool>(number.back() >> 31);
+    removeLeadingZeros();
 
-    swap(*this, cpy);
     return *this;
 }
 
@@ -115,6 +110,35 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
 
     swap(*this, a_lhs);
     return *this;
+}
+
+void big_integer::sub_with_shift(big_integer& lhs, const big_integer& rhs, long sh) {
+    unsigned long long carry = 1;
+    size_t m = rhs.number.size() + sh;
+    size_t n = std::max(lhs.number.size(), rhs.number.size() + sh) + 1;
+    std::vector<ui> res(n);
+
+    for (size_t i = 0; i < sh; i++) {
+        unsigned long long tmp = carry + lhs.number[i] + UI_MAX;
+        res[i] = uicast(tmp);
+        carry = tmp >> 32;
+    }
+
+    for (size_t i = sh; i < m; i++) {
+        unsigned long long tmp = carry + lhs.number[i] + ~rhs.number[i - sh];
+        res[i] = uicast(tmp);
+        carry = tmp >> 32;
+    }
+
+    for (size_t i = m; i < n; i++) {
+        unsigned long long tmp = carry + lhs.at(i) + UI_MAX;
+        res[i] = uicast(tmp);
+        carry = tmp >> 32;
+    }
+
+    lhs.number.swap(res);
+    lhs.isNegative = static_cast<bool>(lhs.number.back() >> 31);
+    lhs.removeLeadingZeros();
 }
 
 big_integer &big_integer::operator/=(big_integer const &rhs) {
@@ -154,7 +178,7 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
         unsigned long long q = (((1ull * a_lhs.at(n + i)) << 32) + a_lhs.at(n + i - 1)) / a_rhs.number.back();
         q = std::min(q, ullcast(UI_MAX));
 
-        a_lhs -= radix_shl(uicast(q) * a_rhs, i);
+        sub_with_shift(a_lhs, uicast(q) * a_rhs, i);
         while (a_lhs.isNegative) {
             q--;
             a_lhs += radix_shl(a_rhs, i);
@@ -418,7 +442,7 @@ std::string to_string(big_integer const &a) {
     return s;
 }
 
-void big_integer::removeLeadingZeros() {
+void big_integer::removeLeadingZeros() noexcept {
     while (!number.empty() && (!isNegative && number.back() == 0 || isNegative && number.back() == UI_MAX)) {
         number.pop_back();
     }
@@ -493,7 +517,7 @@ big_integer operator*(unsigned a, big_integer b) {
     return b *= a;
 }
 
-unsigned int big_integer::at(size_t pos) const {
+unsigned int big_integer::at(size_t pos) const noexcept {
     if (pos < number.size()) {
         return number[pos];
     }
