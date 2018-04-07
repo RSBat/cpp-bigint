@@ -470,9 +470,9 @@ std::ostream &operator<<(std::ostream &s, big_integer const &a) {
     return s;
 }
 
-big_integer abs(big_integer x) {
+big_integer abs(const big_integer& x) {
     if (x.isNegative) {
-        x = -x;
+        return -x;
     }
     return x;
 }

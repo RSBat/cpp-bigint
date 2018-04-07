@@ -54,7 +54,7 @@ struct big_integer
     friend bool operator>=(big_integer const& a, big_integer const& b);
 
     friend std::string to_string(big_integer const& a);
-    friend big_integer abs(big_integer);
+    friend big_integer abs(const big_integer&);
     friend void swap (big_integer& lhs, big_integer& rhs);
     big_integer radix_shl(const big_integer&, long);
     big_integer radix_shr(const big_integer&, long);
