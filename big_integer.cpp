@@ -3,9 +3,13 @@
 //
 
 #include <string>
+#include <limits>
+
 #include "big_integer.h"
 
 typedef unsigned int ui;
+
+static const unsigned UI_MAX = std::numeric_limits<unsigned >::max();
 
 template<typename T>
 ui uicast(const T &x) {
@@ -23,13 +27,11 @@ big_integer::big_integer(big_integer const &other) = default;
 
 big_integer::big_integer(int a) : isNegative(a < 0), number(1) {
     number[0] = uicast(a);
-
     removeLeadingZeros(); // if a == 0
 }
 
 big_integer::big_integer(ui a) : isNegative(false), number(1) {
     number[0] = a;
-
     removeLeadingZeros();
 }
 
@@ -152,7 +154,7 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
 
     for (long i = m - 1; i >= 0; i--) {
         unsigned long long q = (((1ull * a_lhs.at(n + i)) << 32) + a_lhs.at(n + i - 1)) / a_rhs.number.back();
-        q = std::min(q, ullcast(UINT32_MAX));
+        q = std::min(q, ullcast(UI_MAX));
 
         a_lhs -= radix_shl(uicast(q) * a_rhs, i);
         while (a_lhs.isNegative) {
@@ -185,7 +187,7 @@ big_integer &big_integer::operator&=(big_integer const &rhs) {
 
     size_t n = std::max(cpy.number.size(), rhs.number.size());
     for (size_t i = 0; i < n; i++) {
-        if (i == cpy.number.size()) { cpy.number.push_back(cpy.isNegative ? UINT32_MAX : 0); }
+        if (i == cpy.number.size()) { cpy.number.push_back(cpy.isNegative ? UI_MAX : 0); }
         cpy.number[i] &= rhs.at(i);
     }
     cpy.isNegative &= rhs.isNegative;
@@ -200,7 +202,7 @@ big_integer &big_integer::operator|=(big_integer const &rhs) {
 
     size_t n = std::max(cpy.number.size(), rhs.number.size());
     for (size_t i = 0; i < n; i++) {
-        if (i == cpy.number.size()) { cpy.number.push_back(cpy.isNegative ? UINT32_MAX : 0); }
+        if (i == cpy.number.size()) { cpy.number.push_back(cpy.isNegative ? UI_MAX : 0); }
         cpy.number[i] |= rhs.at(i);
     }
     cpy.isNegative |= rhs.isNegative;
@@ -215,7 +217,7 @@ big_integer &big_integer::operator^=(big_integer const &rhs) {
 
     size_t n = std::max(cpy.number.size(), rhs.number.size());
     for (size_t i = 0; i < n; i++) {
-        if (i == cpy.number.size()) { cpy.number.push_back(cpy.isNegative ? UINT32_MAX : 0); }
+        if (i == cpy.number.size()) { cpy.number.push_back(cpy.isNegative ? UI_MAX : 0); }
         cpy.number[i] ^= rhs.at(i);
     }
     cpy.isNegative ^= rhs.isNegative;
@@ -229,7 +231,7 @@ big_integer &big_integer::operator<<=(int rhs) {
     big_integer res(*this);
 
     if (res.number.empty() && res.isNegative) {
-        res.number.push_back(UINT32_MAX);
+        res.number.push_back(UI_MAX);
     }
 
     res = radix_shl(res, rhs / 32);
@@ -243,7 +245,7 @@ big_integer &big_integer::operator<<=(int rhs) {
     }
 
     if (carry) {
-        unsigned long long tmp = (ullcast(res.isNegative ? UINT32_MAX : 0) << rhs) + carry;
+        unsigned long long tmp = (ullcast(res.isNegative ? UI_MAX : 0) << rhs) + carry;
         res.number.push_back(uicast(tmp));
     }
 
@@ -253,13 +255,13 @@ big_integer &big_integer::operator<<=(int rhs) {
     return *this;
 }
 
-big_integer &big_integer::operator>>=(int rhs) { // TODO: RADIX SHIFT RIGHT
+big_integer &big_integer::operator>>=(int rhs) {
     if (number.empty()) { return *this; }
 
     big_integer res(*this);
 
     if (res.number.empty() && res.isNegative) {
-        res.number.push_back(UINT32_MAX);
+        res.number.push_back(UI_MAX);
     }
 
     res = radix_shr(res, rhs / 32);
@@ -295,7 +297,7 @@ big_integer big_integer::operator-() const {
     }
 
     big_integer res(*this);
-    res.number.push_back(res.isNegative ? UINT32_MAX : 0);
+    res.number.push_back(res.isNegative ? UI_MAX : 0);
     unsigned long long carry = 1;
     for (unsigned int &i : res.number) {
         unsigned long long tmp = carry + ~i;
@@ -419,7 +421,7 @@ std::string to_string(big_integer const &a) {
 }
 
 void big_integer::removeLeadingZeros() {
-    while (!number.empty() && (!isNegative && number.back() == 0 || isNegative && number.back() == UINT32_MAX)) {
+    while (!number.empty() && (!isNegative && number.back() == 0 || isNegative && number.back() == UI_MAX)) {
         number.pop_back();
     }
 }
@@ -510,7 +512,7 @@ unsigned int big_integer::at(size_t pos) const {
     if (pos < number.size()) {
         return number[pos];
     }
-    return isNegative ? UINT32_MAX : 0;
+    return isNegative ? UI_MAX : 0;
 }
 
 big_integer &big_integer::operator*=(int rhs) {
