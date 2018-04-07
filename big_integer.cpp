@@ -116,7 +116,7 @@ void big_integer::sub_with_shift(big_integer& lhs, const big_integer& rhs, long 
     unsigned long long carry = 1;
     size_t m = rhs.number.size() + sh;
     size_t n = lhs.number.size() + 1;
-    lhs.number.resize(n);
+    lhs.number.push_back(lhs.isNegative ? UI_MAX : 0);
 
     for (size_t i = sh; i < m; i++) {
         carry += ullcast(lhs.number[i]) + ~rhs.number[i - sh];
@@ -126,10 +126,32 @@ void big_integer::sub_with_shift(big_integer& lhs, const big_integer& rhs, long 
 
     if (carry == 0) {
         for (size_t i = m; i < n; i++) {
-            carry += lhs.at(i) + ullcast(UI_MAX);
+            carry += lhs.number[i] + ullcast(UI_MAX);
             lhs.number[i] = uicast(carry);
             carry >>= 32;
         }
+    }
+
+    lhs.isNegative = static_cast<bool>(lhs.number.back() >> 31);
+    lhs.removeLeadingZeros();
+}
+
+void big_integer::add_with_shift(big_integer& lhs, const big_integer& rhs, long sh) {
+    unsigned long long carry = 0;
+    size_t m = rhs.number.size() + sh;
+    size_t n = lhs.number.size() + 1;
+    lhs.number.push_back(lhs.isNegative ? UI_MAX : 0);
+
+    for (size_t i = sh; i < m; i++) {
+        unsigned long long tmp = carry + lhs.number[i] + rhs.number[i - sh];
+        lhs.number[i] = uicast(tmp);
+        carry = tmp >> 32;
+    }
+
+    for (size_t i = m; i < n; i++) {
+        unsigned long long tmp = carry + lhs.number[i];
+        lhs.number[i] = uicast(tmp);
+        carry = tmp >> 32;
     }
 
     lhs.isNegative = static_cast<bool>(lhs.number.back() >> 31);
@@ -179,7 +201,7 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
             sub_with_shift(a_lhs, uicast(q) * a_rhs, i);
             while (a_lhs.isNegative) {
                 q--;
-                a_lhs += radix_shl(a_rhs, i);
+                add_with_shift(a_lhs, a_rhs, i);
             }
         }
         res[i] = uicast(q);

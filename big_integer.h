@@ -64,6 +64,7 @@ private:
 
     void removeLeadingZeros() noexcept;
     void sub_with_shift(big_integer&, const big_integer&, long sh);
+    void add_with_shift(big_integer&, const big_integer&, long sh);
     unsigned int at(size_t) const noexcept;
 };
 
