@@ -12,7 +12,7 @@
 struct big_integer
 {
     big_integer();
-    big_integer(big_integer const& other);
+    big_integer(big_integer const& other) = default;
     big_integer(int a);
     big_integer(unsigned int a);
     explicit big_integer(std::string const& str);
@@ -56,8 +56,8 @@ struct big_integer
     friend std::string to_string(big_integer const& a);
     friend big_integer abs(big_integer);
     friend void swap (big_integer& lhs, big_integer& rhs);
-    big_integer radix_shl(big_integer, long);
-    big_integer radix_shr(big_integer, long);
+    big_integer radix_shl(const big_integer&, long);
+    big_integer radix_shr(const big_integer&, long);
 private:
     std::vector<unsigned int> number;
     bool isNegative;

@@ -23,8 +23,6 @@ unsigned long long ullcast(unsigned int x) {
 big_integer::big_integer() : number(0), isNegative(false) {
 }
 
-big_integer::big_integer(big_integer const &other) = default;
-
 big_integer::big_integer(int a) : isNegative(a < 0), number(1) {
     number[0] = uicast(a);
     removeLeadingZeros(); // if a == 0
@@ -495,19 +493,6 @@ big_integer operator*(unsigned a, big_integer b) {
     return b *= a;
 }
 
-big_integer big_integer::radix_shl(big_integer x, long sh) {
-    big_integer res;
-    size_t n = x.number.size();
-
-    res.number.resize(n + sh);
-    for (size_t i = 0; i < n; i++) {
-        res.number[i + sh] = x.number[i];
-    }
-    res.removeLeadingZeros();
-    res.isNegative = x.isNegative;
-    return res;
-}
-
 unsigned int big_integer::at(size_t pos) const {
     if (pos < number.size()) {
         return number[pos];
@@ -556,7 +541,20 @@ void swap(big_integer &lhs, big_integer &rhs) {
     std::swap(lhs.isNegative, rhs.isNegative);
 }
 
-big_integer big_integer::radix_shr(big_integer x, long sh) {
+big_integer big_integer::radix_shl(const big_integer& x, long sh) {
+    big_integer res;
+    size_t n = x.number.size();
+
+    res.number.resize(n + sh);
+    for (size_t i = 0; i < n; i++) {
+        res.number[i + sh] = x.number[i];
+    }
+    res.removeLeadingZeros();
+    res.isNegative = x.isNegative;
+    return res;
+}
+
+big_integer big_integer::radix_shr(const big_integer& x, long sh) {
     big_integer res;
     size_t n = x.number.size();
 
