@@ -33,7 +33,7 @@ big_integer::big_integer(ui a) : isNegative(false), number(1) {
     removeLeadingZeros();
 }
 
-big_integer::big_integer(std::string const &str) {
+big_integer::big_integer(std::string const &str) :big_integer() {
     big_integer ans;
     for (char ch : str) {
         if (ch == '-') { continue; }
@@ -178,10 +178,14 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
         unsigned long long q = ((ullcast(a_lhs.at(n + i)) << 32) + a_lhs.at(n + i - 1)) / a_rhs.number.back();
         q = std::min(q, ullcast(UI_MAX));
 
-        sub_with_shift(a_lhs, uicast(q) * a_rhs, i);
-        while (a_lhs.isNegative) {
-            q--;
-            a_lhs += radix_shl(a_rhs, i);
+        if (!a_lhs.isNegative && a_lhs.number.empty()) {
+            q = 0;
+        } else {
+            sub_with_shift(a_lhs, uicast(q) * a_rhs, i);
+            while (a_lhs.isNegative) {
+                q--;
+                a_lhs += radix_shl(a_rhs, i);
+            }
         }
         res[i] = uicast(q);
     }
@@ -290,7 +294,7 @@ big_integer &big_integer::operator>>=(int rhs) {
     rhs %= 32;
 
     unsigned int carry = 0;
-    int carryMask = (1 << rhs) - 1;
+    ui carryMask = (1u << rhs) - 1;
 
     auto fst = static_cast<int>(res.number.back());
     carry = uicast(fst & carryMask);
